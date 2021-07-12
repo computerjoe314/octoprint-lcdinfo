@@ -24,10 +24,10 @@ class LcdInfo(
 
     # Events
     def on_event(self, event, payload):
-        self.print_job_name = payload["name"]
 
         if event == octoprint.events.Events.PRINT_STARTED:
             self._printer.commands("M117 Printing {}".format(self.print_job_name))
+            self.print_job_name = payload["name"]
 
             if self._settings.get(["M73"]):
                 self._printer.commands("M73 P0")
