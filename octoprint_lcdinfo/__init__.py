@@ -20,7 +20,7 @@ class LcdInfo(
 
     # Plugin startup
     def on_after_startup(self):
-        self._logger.info("LcdInfo has started")
+        self._logger.info("LcdInfo has started!")
 
     # Events
     def on_event(self, event, payload):
