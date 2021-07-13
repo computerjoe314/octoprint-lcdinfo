@@ -26,8 +26,12 @@ class LcdInfo(
     def on_event(self, event, payload):
 
         if event == octoprint.events.Events.PRINT_STARTED:
+            if payload["name"].endswith(".gcode"):
+                self.print_job_name = payload["name"][:-6]
+            else:
+                self.print_job_name = payload["name"]
             self._printer.commands("M117 Printing {}".format(self.print_job_name))
-            self.print_job_name = payload["name"]
+
 
             if self._settings.get(["M73"]):
                 self._printer.commands("M73 P0")
@@ -92,15 +96,22 @@ class LcdInfo(
         ]
 
     # Updates
-
-
     def get_update_information(self, *args, **kwargs):
-        return {'lcdinfo': {'displayName': self._plugin_name, 'displayVersion': self._plugin_version,
-                            'type': "github_release",
-                            'current': self._plugin_version, 'user': "computerjoe314",
-                            'repo': "octoprint-lcdinfo",
-                            'pip': "https://github.com/computerjoe314/octoprint-lcdinfo/archive/{target_version}.zip"}}
+        return {
+            "lcdinfo": {
+                "displayName": "Octoprint LCD Info",
+                "displayVersion": self._plugin_version,
 
+                # version check: github repository
+                "type": "github_release",
+                "user": "computerjoe314",
+                "repo": "octoprint-lcdinfo",
+                "current": self._plugin_version,
+
+                # update method: pip
+                "pip": "https://github.com/computerjoe314/octoprint-lcdinfo/archive/{target_version}.zip",
+            }
+        }
 
 def __plugin_load__():
     global __plugin_implementation__
@@ -108,11 +119,12 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.flag_wait_for_preheat
+        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.flag_wait_for_preheat,
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
     }
 
 
 __plugin_name__ = "lcdinfo"
-__plugin_version__ = "1.0.0"
+__plugin_version__ = "0.0.2"
 __plugin_description__ = "Show Octoprint information on the printer's lcd screen"
 __plugin_pythoncompat__ = ">=3.0,<4"
